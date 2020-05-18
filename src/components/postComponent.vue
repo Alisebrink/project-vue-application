@@ -7,7 +7,6 @@
       <button class="add-task-button" v-on:click="createPost">Lägg till en uppgift</button>
     </div>
     <!-- Skapa post här -->
-    <hr>
     <p class="error" v-if="error">{{error}}</p>
     <div class="posts-container">
       <div class="post"
@@ -19,7 +18,7 @@
       <input type="checkbox" class="finish-task"
       v-model="post.isFinished"
       >
-      <p class="text"
+      <p class="text" title="Uppdatera mig"
         v-if ="!post.editmode"
         v-on:click="enterEditmode(post)"
         v-bind:class="{finishedTask: post.isFinished}"
@@ -32,7 +31,9 @@
         >
         <p class="text-date">Tillagd {{`${post.createdAt.getDate()}/${post.createdAt.getMonth()}/${post.createdAt.getFullYear()}`}}</p>
       <button class="update-button"
-        v-on:click="updatePost(post._id, post.text)">Uppdatera</button>
+        v-bind:class="{inactiveButton: post.isFinished}"
+        v-on:click="updatePost(post._id, post.text)" 
+        :disabled="post.isFinished">Uppdatera</button>
       
       <button class="delete-button"
         v-on:click="deletePost(post._id)">Radera</button>
@@ -65,8 +66,10 @@ export default {
   },
   methods: {
     async createPost() {
-      await PostService.insertPost(this.text);
-      this.posts = await PostService.getPosts();
+      if (this.text != ""){
+        await PostService.insertPost(this.text);
+        this.posts = await PostService.getPosts();
+      }
     },
     async deletePost(id) {
       await PostService.deletePost(id);
@@ -77,8 +80,10 @@ export default {
       this.posts = await PostService.getPosts();
     },
     enterEditmode(post) {
-      post.editmode = true;
-      this.posts = [...this.posts];
+      if (!post.isFinished){
+        post.editmode = true;
+        this.posts = [...this.posts];
+      }
     },
   },
 
@@ -88,10 +93,10 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 
-div.container { 
+div.container {
   max-width: 800px; 
   margin: 0 auto;
-  padding:15px;
+  background:#F8F8F8;
 }
 
 p.error { 
@@ -123,10 +128,22 @@ p.error {
   transition:0.2s;
 }
 
-div.post { 
+div h1 {
+  background:#027A9F;
+  color:white;
+  padding-top:40px;
+  padding-bottom:40px;
+}
+
+div.post:hover {
+  border:1px solid #adadad;
+  transition:0.2s;
+}
+
+div.post {
+  border:1px solid white;
   position: relative; 
   background-color: white;
-
   padding:10px;
   margin: 20px 15px;
   display:flex;
@@ -134,8 +151,8 @@ div.post {
 }
 
 div.posts-container {
+  box-sizing: border-box;
   padding:5px;
-  background:#F8F8F8;
 }
 
 div.created-at {  
@@ -173,6 +190,16 @@ p.text-date {
   color:#FFAA01;
 }
 
+.inactiveButton {
+  background:#adadad;
+  color:white;
+}
+
+.inactiveButton:hover {
+  background:#adadad;
+  color:white;
+}
+
 div.create-post {
   padding:10px;
 }
@@ -185,5 +212,49 @@ div.create-post input[type=text] {
   border:1px solid #FFAA01;
   border-radius: 5px;
   padding: 5px 10px;
+}
+
+@media only screen and (max-width: 600px) {
+
+  div.container {
+    width:100%;
+  }
+
+  div.post {
+    display:block;
+    margin:10px 5px;
+  }
+  
+  p.text {
+    text-align: center;
+    font-size:14px;
+    width:100%;
+    margin:0px;
+  }
+
+  .input-field {
+    width:100%;
+  }
+
+  .delete-button, .update-button, .finish-task, .add-task-button {
+  padding:10px 16px;
+  margin:5px;
+  font-size: 8px;
+  font-weight:700;
+  letter-spacing: 1px;
+  text-transform:uppercase;
+  color:white;
+  background:#027A9F;
+  border:none;
+  border-radius: 5px;
+  height:auto;
+  width:auto;
+}
+
+div.create-post input[type=text] {
+  width:80%;
+  margin:0px;
+}
+  
 }
 </style>
