@@ -1,12 +1,15 @@
 
+  <!-- Den här appen är skapad av Linnea Isebrink som projektarbete för kursen DT162G - JavaScriptbaserad webbutveckling -->
   <template>
   <div class="container">
     <h1>Min att-göra-lista</h1>
     <div class="create-post">
+      <!-- Skapa post här -->
+      <!-- Här är ett input fält som tillåter att vi lägger till en post på listan -->
       <input type="text" id="create-post" v-model="text">
       <button class="add-task-button" v-on:click="createPost">Lägg till en uppgift</button>
     </div>
-    <!-- Skapa post här -->
+    <!-- Om innehållet inte kan läsas ut så dyker det upp ett error-meddelande här -->
     <p class="error" v-if="error">{{error}}</p>
     <div class="posts-container">
       <div class="post"
@@ -15,9 +18,11 @@
         v-bind:index="index"
         v-bind:key="post._id"
       >
+      <!-- Här är min checkbox som man kryssar i när uppgiften på listan är färdig -->
       <input type="checkbox" class="finish-task"
       v-model="post.isFinished"
       >
+      <!-- Det här är p-taggen som innehåller texten i en post -->
       <p class="text" title="Uppdatera mig"
         v-if ="!post.editmode"
         v-on:click="enterEditmode(post)"
@@ -25,16 +30,22 @@
         >
         {{post.text}}
       </p>
+      <!-- Här är input-fältet som dyker upp när man klickar på p-taggen ovan -->
       <input class="input-field"
         v-else
         v-model="post.text"
         >
+        <!-- Den här lägger till datumet då posten skapades -->
         <p class="text-date">Tillagd {{`${post.createdAt.getDate()}/${post.createdAt.getMonth()}/${post.createdAt.getFullYear()}`}}</p>
+
+      <!-- Knappen som låter mig uppdatera posten -->
+      <!-- Knappen fungerar bara så länge som checkboxen inte är ikryssad-->
       <button class="update-button"
         v-bind:class="{inactiveButton: post.isFinished}"
         v-on:click="updatePost(post._id, post.text)" 
         :disabled="post.isFinished">Uppdatera</button>
-      
+
+      <!-- Min knapp som raderar den post du trycker på -->
       <button class="delete-button"
         v-on:click="deletePost(post._id)">Radera</button>
 
@@ -45,7 +56,7 @@
 </template>
 
 <script>
-import PostService from '../postService';
+import PostService from '../postService'; // importerar kod från min fil som heter postService
 
 export default {
   name: 'postComponent',
@@ -54,32 +65,33 @@ export default {
       posts: [],
       error: '',
       text: '',
-      isFinished:true,
+      isFinished:true, // den här används för min checkbox
     } 
   },
-  async created() {
+  async created() { // den här funktionen läser in mina poster
     try {
       this.posts = await PostService.getPosts();
     } catch(err) {
       this.error = err.message;
     }
   },
+  // Här nedan finns mina metoder som används för att genomföra olika saker på front-end sidan
   methods: {
-    async createPost() {
+    async createPost() { // Skapar upp en post, den funkar bara så länge som fältet inte är tomt
       if (this.text != ""){
         await PostService.insertPost(this.text);
         this.posts = await PostService.getPosts();
       }
     },
-    async deletePost(id) {
+    async deletePost(id) { // raderar en post
       await PostService.deletePost(id);
       this.posts = await PostService.getPosts();
     },
-    async updatePost(id, text) {
+    async updatePost(id, text) { // uppdaterar texten på en post
       await PostService.updatePost(id, text);
       this.posts = await PostService.getPosts();
     },
-    enterEditmode(post) {
+    enterEditmode(post) { // Det här är en egen funktion som aktiveras när man klickar på en p-tagg i min lista, då dyker det upp ett input-fält
       if (!post.isFinished){
         post.editmode = true;
         this.posts = [...this.posts];
